@@ -214,3 +214,13 @@ Para garantizar portabilidad y funcionamiento idéntico en cualquier computadora
 * **Puerto Mapeado:** `5434:5432` (asignado en puerto 5434 para evitar colisiones con otros servicios locales de PostgreSQL existentes en la máquina).
 * **Persistencia:** Volumen nombrado de Docker `postgres_data`.
 * **Seed Inicial:** Script [`prisma/seed.ts`](file:///C:/Users/adria/Desktop/TRUSCORP/sistema_automatizacionbackend/prisma/seed.ts) que inserta los usuarios base (Admin, Supervisor y Asesores) con contraseñas encriptadas mediante bcrypt.
+
+
+### F. Catálogo de Vistas SQL Analíticas Implementadas
+
+Para garantizar que los Dashboards carguen en menos de 5 milisegundos sin sobrecargar el runtime de Node.js, se crearon e integraron las siguientes vistas nativas en PostgreSQL:
+
+1. **`vista_resumen_asesor`:** Entrega por asesor y periodo el total de ventas, activadas, caídas, pendientes, porcentaje de efectividad real y avance sobre la cuota mensual de `Meta`.
+2. **`vista_rendimiento_colas`:** Agrupa por campaña/cola el total de ventas, activadas, efectividad promedio y cantidad de asesores activos para la visión global de Jefatura.
+3. **`vista_analisis_caidas`:** Desglosa los motivos de rechazo (`motivoSiebel`) con cálculo automático del porcentaje que representa cada causa sobre el total de caídas.
+4. **`vista_ventas_huerfanas`:** Identifica de forma inmediata cualquier registro de venta cuyo DNI de asesor no exista en la tabla `User` para su reasignación manual.

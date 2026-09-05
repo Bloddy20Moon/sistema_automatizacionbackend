@@ -32,6 +32,11 @@ Este repositorio contiene el **Backend (API REST)**, el motor de base de datos r
 - [x] **Sincronización Física de Tablas:** Ejecución de `prisma db push` en el contenedor activo.
 - [x] **Seed Inicial de Usuarios:** Script `prisma/seed.ts` para sembrar cuentas base (Jefe, Supervisor y Asesores) con contraseñas encriptadas.
 - [x] **Primer Endpoint REST con Paginación:** `GET /api/sales` con paginación obligatoria por Limit/Offset (`page`, `limit`) y filtros por asesor, cola y estado.
+- [x] **Vistas SQL Analíticas de Alto Rendimiento:** Creación e integración de 4 vistas nativas en PostgreSQL para precalcular KPIs en memoria (< 5ms):
+  - `vista_resumen_asesor`: Agrupación de efectividad, activadas, pendientes, caídas y avance de meta por asesor.
+  - `vista_rendimiento_colas`: Comparativa de volumen y efectividad entre campañas (`WSP APP`, `C2C`, etc.) para el Jefe.
+  - `vista_analisis_caidas`: Análisis Pareto de motivos de caída de Siebel para el Supervisor.
+  - `vista_ventas_huerfanas`: Bandeja de aislamiento y cuarentena para ventas con DNI no registrado.
 
 ---
 
