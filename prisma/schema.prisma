@@ -55,81 +55,34 @@ model User {
 
 model Sale {
   id                   String          @id @default(uuid())
-  
-  // 1. Identificación y Control Operativo
-  marcaTemporal        DateTime        @default(now())
-  campana              String          // WSP APP, C2C APP, etc.
-  fechaVenta           DateTime
-  cd                   String?
-  tuHicisteCvoz        String?
-  validador            String?
-  tipoVenta            TransactionType
-  
-  // 2. Datos del Cliente y la Transacción
-  detalleVenta         String?
-  venta                String?
-  oferta               String?
-  dniCliente           String
-  nombreCliente        String
-  numeroReferencia     String?
-  numeroPortarRenovar  String?         // Número principal (se limpia con Regex)
-  operadorActual       String?
-  origenLinea          String?
-  
-  // 3. Plan y SKU
-  ciclo                String?
-  tipoPlan             String?
-  planesNuevos         String?
-  planesAntiguos       String?
-  lineaAsociada        String?
-  sku                  String?
-  cantidadCuotas       Int?
-  cuotasMensuales      Decimal?        @db.Decimal(10, 2)
-  promocion            String?
-  
-  // 4. Entrega y Logística
-  tipoEntrega          String?         // Delivery / Tienda
-  motivoRt             String?
-  modalidad            String?
-  motivo24h72h         String?
-  fechaEntrega         DateTime?
-  lugarEntrega         String?
-  direccionEntrega     String?
-  referenciaEntrega    String?
-  coordenadas          String?         // GPS Lat/Lng
-  direccionFacturacion String?
-  
-  // 5. Asesor y Control de Sistemas (Valkiria/Siebel)
-  linkBotmaker         String?
-  medioVenta           String?
-  dniAsesor            String          // DNI del asesor para asociar comisiones
+  idOt                 String          // ID OT
+  correlative          Int             @default(1) // Correlativo
+  fechaVenta           DateTime        // Fecha de Venta
+  estado               OpState         @default(PENDIENTE) // Estado
+  tipoVenta            TransactionType // Tipo de Venta
+  venta                String?         // Venta
+  fechaActivacion      DateTime?       // Fecha de Activación
+  campana              String          // Campaña
+  dniCliente           String          // DNI del Cliente
+  nombreCliente        String          // Nombre del Cliente
+  numeroPortarRenovar  String?         // Número a Portar o Renovar
+  tipoEntrega          String?         // Tipo de Entrega
+  linkBotmaker         String?         // Link Botmaker
+  dniAsesor            String          // DNI del Asesor
   agent                User            @relation("AgentSales", fields: [dniAsesor], references: [dni])
-  nombreAsesor         String
-  turno                String?
-  idValkiria           String?
-  resultado            String?
-  idOt                 String          // ID Orden de Trabajo de Siebel
-  correlative          Int             @default(1) // Correlativo de línea para desdoblamiento
-  excepciones          String?
-  reingreso            String?         // SI / NO
-  observacionCalidad   String?
-  
-  // 6. Calidad y Validación (Cargados por Backoffice)
-  calidad              String?
-  resultadoEntrega     String?
-  estadoSiebel         String?         // Cerrado, Cancelado, etc.
-  motivoSiebel         String?         // Causa de la caída
-  fechaActivacion      DateTime?       // Fecha de cierre formal
-  estado               OpState         @default(PENDIENTE)
-  gtrVenta             String?
-  condicional          String?
-  
-  // Auditoría
+  nombreAsesor         String          // Nombre del Asesor
+  reingreso            String?         // Reingreso
+  resultadoEntrega     String?         // Resultado de Entrega
+  estadoSiebel         String?         // Estado Siebel
+  motivoSiebel         String?         // Motivo Siebel
+
+  // Control y Auditoría
+  createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   auditLogs            AuditLog[]      @relation("SaleAudits")
 
-  // Clave Compuesta para Desdoblamiento e Ingesta Inteligente (UPSERT)
-  @@unique([idOt, correlative]) // Evita duplicaciones antes de que se asigne número real
+  // Clave Compuesta Única para Multilíneas
+  @@unique([idOt, correlative])
 }
 
 model Meta {
