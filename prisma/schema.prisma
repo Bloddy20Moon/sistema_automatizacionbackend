@@ -1,0 +1,158 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  AGENT
+}
+
+enum Queue {
+  WSP_APP
+  WSP_APP_RENO
+  WSP_DIGITAL
+  C2C_APP
+  C2C_DIGITAL
+}
+
+enum TransactionType {
+  PORTA
+  LINEA_NUEVA
+  ADICIONAL
+  RENO
+}
+
+enum OpState {
+  PENDIENTE
+  ACTIVADO
+  CAIDA
+}
+
+enum TargetType {
+  USER
+  QUEUE
+}
+
+model User {
+  dni          String     @id
+  name         String
+  passwordHash String
+  role         Role
+  queue        Queue
+  
+  // Relations
+  sales        Sale[]     @relation("AgentSales")
+  auditLogs    AuditLog[] @relation("UserAudits")
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Sale {
+  id                   String          @id @default(uuid())
+  
+  // 1. Identificación y Control Operativo
+  marcaTemporal        DateTime        @default(now())
+  campana              String          // WSP APP, C2C APP, etc.
+  fechaVenta           DateTime
+  cd                   String?
+  tuHicisteCvoz        String?
+  validador            String?
+  tipoVenta            TransactionType
+  
+  // 2. Datos del Cliente y la Transacción
+  detalleVenta         String?
+  venta                String?
+  oferta               String?
+  dniCliente           String
+  nombreCliente        String
+  numeroReferencia     String?
+  numeroPortarRenovar  String?         // Número principal (se limpia con Regex)
+  operadorActual       String?
+  origenLinea          String?
+  
+  // 3. Plan y SKU
+  ciclo                String?
+  tipoPlan             String?
+  planesNuevos         String?
+  planesAntiguos       String?
+  lineaAsociada        String?
+  sku                  String?
+  cantidadCuotas       Int?
+  cuotasMensuales      Decimal?        @db.Decimal(10, 2)
+  promocion            String?
+  
+  // 4. Entrega y Logística
+  tipoEntrega          String?         // Delivery / Tienda
+  motivoRt             String?
+  modalidad            String?
+  motivo24h72h         String?
+  fechaEntrega         DateTime?
+  lugarEntrega         String?
+  direccionEntrega     String?
+  referenciaEntrega    String?
+  coordenadas          String?         // GPS Lat/Lng
+  direccionFacturacion String?
+  
+  // 5. Asesor y Control de Sistemas (Valkiria/Siebel)
+  linkBotmaker         String?
+  medioVenta           String?
+  dniAsesor            String          // DNI del asesor para asociar comisiones
+  agent                User            @relation("AgentSales", fields: [dniAsesor], references: [dni])
+  nombreAsesor         String
+  turno                String?
+  idValkiria           String?
+  resultado            String?
+  idOt                 String          // ID Orden de Trabajo de Siebel
+  correlative          Int             @default(1) // Correlativo de línea para desdoblamiento
+  excepciones          String?
+  reingreso            String?         // SI / NO
+  observacionCalidad   String?
+  
+  // 6. Calidad y Validación (Cargados por Backoffice)
+  calidad              String?
+  resultadoEntrega     String?
+  estadoSiebel         String?         // Cerrado, Cancelado, etc.
+  motivoSiebel         String?         // Causa de la caída
+  fechaActivacion      DateTime?       // Fecha de cierre formal
+  estado               OpState         @default(PENDIENTE)
+  gtrVenta             String?
+  condicional          String?
+  
+  // Auditoría
+  updatedAt            DateTime        @updatedAt
+  auditLogs            AuditLog[]      @relation("SaleAudits")
+
+  // Clave Compuesta para Desdoblamiento e Ingesta Inteligente (UPSERT)
+  @@unique([idOt, correlative]) // Evita duplicaciones antes de que se asigne número real
+}
+
+model Meta {
+  id         String     @id @default(uuid())
+  targetId   String     // DNI del asesor o nombre de la Cola (ej. C2C_DIGITAL)
+  targetType TargetType
+  period     String     // Formato YYYY-MM
+  quota      Int        // Cantidad de líneas meta
+  
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([targetId, period]) // Evita duplicidad de cuotas para el mismo periodo
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  saleId        String
+  sale          Sale     @relation("SaleAudits", fields: [saleId], references: [id])
+  modifiedField String
+  oldValue      String?
+  newValue      String?
+  changedBy     String
+  user          User     @relation("UserAudits", fields: [changedBy], references: [dni])
+  timestamp     DateTime @default(now())
+}
