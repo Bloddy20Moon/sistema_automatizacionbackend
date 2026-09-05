@@ -28,7 +28,7 @@ async function main() {
     FROM "User" u
     LEFT JOIN "Sale" s ON u.dni = s."dniAsesor"
     LEFT JOIN "Meta" m ON m."targetId" = u.dni AND m.period = TO_CHAR(s."fechaVenta", 'YYYY-MM')
-    WHERE u.role = 'AGENT'
+    WHERE u.role = 'ASESOR'
     GROUP BY u.dni, u.name, u.queue, TO_CHAR(s."fechaVenta", 'YYYY-MM'), m.quota;
   `);
   console.log("✔ Vista 1 creada: vista_resumen_asesor");

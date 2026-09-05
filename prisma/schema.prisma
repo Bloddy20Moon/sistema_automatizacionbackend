@@ -7,9 +7,9 @@ generator client {
 }
 
 enum Role {
-  ADMIN
+  JEFE
   SUPERVISOR
-  AGENT
+  ASESOR
 }
 
 enum Queue {

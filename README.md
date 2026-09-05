@@ -22,7 +22,7 @@ Este repositorio contiene el **Backend (API REST)**, el motor de base de datos r
 - [x] **Separación Arquitectónica:** División limpia de proyectos independientes para Backend y Frontend.
 - [x] **Contenedor PostgreSQL:** Configuración de `docker-compose.yml` (PostgreSQL 16 Alpine en puerto `5434:5432` con volumen persistente `postgres_data`).
 - [x] **Modelado Relacional en Prisma:**
-  - `User`: Roles (`ADMIN`, `SUPERVISOR`, `AGENT`) y asignación de cola (`WSP_APP`, `C2C_DIGITAL`, etc.).
+  - `User`: Roles (`JEFE`, `SUPERVISOR`, `ASESOR`) y asignación de cola (`WSP_APP`, `C2C_DIGITAL`, etc.).
   - `Sale`: Matriz de venta completa basada en el formulario comercial real.
   - `Meta`: Cuotas comerciales dinámicas por asesor o por cola.
   - `AuditLog`: Historial inmutable de modificaciones operativas.

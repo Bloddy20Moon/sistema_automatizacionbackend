@@ -16,7 +16,7 @@ async function main() {
       dni: "00000001",
       name: "Jefe de Supervisión General",
       passwordHash: defaultPassword,
-      role: Role.ADMIN,
+      role: Role.JEFE,
       queue: Queue.WSP_APP,
     },
   });
@@ -42,7 +42,7 @@ async function main() {
       dni: "12345678",
       name: "Asesor Juan Perez",
       passwordHash: defaultPassword,
-      role: Role.AGENT,
+      role: Role.ASESOR,
       queue: Queue.WSP_APP,
     },
   });
@@ -55,7 +55,7 @@ async function main() {
       dni: "87654321",
       name: "Asesora Maria Lopez",
       passwordHash: defaultPassword,
-      role: Role.AGENT,
+      role: Role.ASESOR,
       queue: Queue.WSP_APP,
     },
   });
