@@ -224,3 +224,15 @@ Para garantizar que los Dashboards carguen en menos de 5 milisegundos sin sobrec
 2. **`vista_rendimiento_colas`:** Agrupa por campaña/cola el total de ventas, activadas, efectividad promedio y cantidad de asesores activos para la visión global de Jefatura.
 3. **`vista_analisis_caidas`:** Desglosa los motivos de rechazo (`motivoSiebel`) con cálculo automático del porcentaje que representa cada causa sobre el total de caídas.
 4. **`vista_ventas_huerfanas`:** Identifica de forma inmediata cualquier registro de venta cuyo DNI de asesor no exista en la tabla `User` para su reasignación manual.
+
+
+### G. Extensión Planificada: Rol de BACKOFFICE (BO)
+
+* **Estado:** Planificado / En reserva para activación bajo demanda.
+* **Propósito:** Separación de funciones operativas (Principio de Mínimo Privilegio).
+* **Definición de Rol:** `BACKOFFICE` (adicional a `JEFE`, `SUPERVISOR`, `ASESOR`).
+* **Alcance y Funcionalidades Exclusivas:**
+  1. **Carga y Sincronización:** Subir reportes consolidados de activas descargados de Siebel/Entel o disparar la sincronización manual.
+  2. **Buscador de Conciliación de Órdenes:** Consultar el estado operativo de cualquier orden (`idOt` o celular) para verificar si ya impactó como `ACTIVADO`, si continúa como `PENDIENTE` o si está en cuarentena como huérfana.
+  3. **Restricción de Acceso:** No visualiza comisiones, rankings ni cuotas comerciales de los asesores.
+  4. **Administración:** Solo el usuario con rol `JEFE` puede dar de alta o gestionar cuentas de Backoffice.
