@@ -37,3 +37,7 @@ next-env.d.ts
 # graphify
 graphify-out/
 .graphify*
+
+# Google Cloud Credentials
+credentials.json
+
