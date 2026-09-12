@@ -109,3 +109,20 @@ model AuditLog {
   user          User     @relation("UserAudits", fields: [changedBy], references: [dni])
   timestamp     DateTime @default(now())
 }
+
+model CampaignSheet {
+  id             String    @id @default(uuid())
+  queue          Queue
+  period         String
+  spreadsheetId  String
+  tabName        String    @default("VENTAS")
+  isActive       Boolean   @default(true)
+  lastSyncAt     DateTime?
+  lastSyncStatus String?
+  errorMessage   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([queue, period])
+  @@index([isActive])
+}

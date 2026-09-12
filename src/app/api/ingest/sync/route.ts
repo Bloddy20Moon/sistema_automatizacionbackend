@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { syncGoogleSheetsToDb } from "@/services/sheetsIngest";
+import { MultiSheetSyncOrchestrator } from "@/services/sync/MultiSheetSyncOrchestrator";
+import { SingleSheetSyncService } from "@/services/sync/SingleSheetSyncService";
+
+const multiOrchestrator = new MultiSheetSyncOrchestrator();
+const singleService = new SingleSheetSyncService();
 
 export async function POST(req: Request) {
   try {
@@ -7,16 +11,28 @@ export async function POST(req: Request) {
     try {
       body = await req.json();
     } catch {
-      // Body vacío o no enviado
+      // Body vacío
     }
 
-    const result = await syncGoogleSheetsToDb({
-      spreadsheetId: body.spreadsheetId,
-      tabName: body.tabName,
-      range: body.range,
-    });
+    // Si se pasa un spreadsheetId específico, se sincroniza solo esa hoja
+    if (body.spreadsheetId) {
+      const result = await singleService.syncSheet(
+        body.spreadsheetId,
+        body.tabName || "VENTAS",
+        body.range
+      );
+      return NextResponse.json(
+        { success: result.success, mode: "SINGLE", data: result },
+        { status: result.success ? 200 : 207 }
+      );
+    }
 
-    return NextResponse.json(result, { status: result.success ? 200 : 207 });
+    // Por defecto: Sincroniza todas las campañas activas configuradas en la base de datos
+    const multiResult = await multiOrchestrator.syncAllActiveCampaigns();
+    return NextResponse.json(
+      { success: multiResult.success, mode: "MULTI_CAMPAIGN", data: multiResult },
+      { status: multiResult.success ? 200 : 207 }
+    );
   } catch (error: any) {
     console.error("Error en API de sincronización:", error);
     return NextResponse.json(
@@ -31,8 +47,12 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const result = await syncGoogleSheetsToDb();
-    return NextResponse.json(result, { status: result.success ? 200 : 207 });
+    // Sincroniza todas las campañas activas
+    const multiResult = await multiOrchestrator.syncAllActiveCampaigns();
+    return NextResponse.json(
+      { success: multiResult.success, mode: "MULTI_CAMPAIGN", data: multiResult },
+      { status: multiResult.success ? 200 : 207 }
+    );
   } catch (error: any) {
     console.error("Error en GET /api/ingest/sync:", error);
     return NextResponse.json(
