@@ -32,6 +32,7 @@ export async function GET(req: Request) {
       whereClause.OR = [
         { dni: { contains: search.trim() } },
         { name: { contains: search.trim(), mode: "insensitive" } },
+        { email: { contains: search.trim(), mode: "insensitive" } },
       ];
     }
 
@@ -40,6 +41,7 @@ export async function GET(req: Request) {
       select: {
         dni: true,
         name: true,
+        email: true,
         role: true,
         queue: true,
         isActive: true,
@@ -65,13 +67,13 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { dni, name, password, role, queue } = body;
+    const { dni, name, email, password, role, queue } = body;
 
     if (!dni || !name || !password || !role || !queue) {
       return NextResponse.json(
         {
           success: false,
-          error: "Todos los campos son obligatorios: dni, name, password, role, queue.",
+          error: "Campos obligatorios: dni, name, password, role, queue.",
         },
         { status: 400 }
       );
@@ -79,8 +81,8 @@ export async function POST(req: Request) {
 
     const cleanDni = dni.toString().trim();
     const cleanName = name.toString().trim();
+    const cleanEmail = email ? email.toString().trim().toLowerCase() : null;
 
-    // Validar si el usuario ya existe
     const existing = await prisma.user.findUnique({
       where: { dni: cleanDni },
     });
@@ -95,13 +97,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hashear contraseña de forma segura con bcrypt
     const passwordHash = await bcrypt.hash(password, 10);
 
     const newUser = await prisma.user.create({
       data: {
         dni: cleanDni,
         name: cleanName,
+        email: cleanEmail,
         passwordHash,
         role: role as Role,
         queue: queue as Queue,
@@ -110,6 +112,7 @@ export async function POST(req: Request) {
       select: {
         dni: true,
         name: true,
+        email: true,
         role: true,
         queue: true,
         isActive: true,

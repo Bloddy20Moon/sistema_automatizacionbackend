@@ -19,6 +19,7 @@ export async function GET(
       select: {
         dni: true,
         name: true,
+        email: true,
         role: true,
         queue: true,
         isActive: true,
@@ -51,7 +52,7 @@ export async function PUT(
     const { dni } = await params;
     const cleanDni = dni.trim();
     const body = await req.json();
-    const { name, password, role, queue, isActive } = body;
+    const { name, email, password, role, queue, isActive } = body;
 
     const existing = await prisma.user.findUnique({
       where: { dni: cleanDni },
@@ -68,6 +69,10 @@ export async function PUT(
 
     if (name && typeof name === "string" && name.trim() !== "") {
       updateData.name = name.trim();
+    }
+
+    if (email && typeof email === "string" && email.trim() !== "") {
+      updateData.email = email.trim().toLowerCase();
     }
 
     if (role && ["JEFE", "SUPERVISOR", "ASESOR"].includes(role)) {
@@ -92,6 +97,7 @@ export async function PUT(
       select: {
         dni: true,
         name: true,
+        email: true,
         role: true,
         queue: true,
         isActive: true,
@@ -132,7 +138,6 @@ export async function DELETE(
       );
     }
 
-    // Eliminación del usuario del sistema
     await prisma.user.delete({
       where: { dni: cleanDni },
     });
