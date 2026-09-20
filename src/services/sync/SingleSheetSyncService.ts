@@ -10,6 +10,7 @@ export interface SingleSheetSyncResult {
   recordsTransformed: number;
   salesUpserted: number;
   orphanSalesCount: number;
+  reconciledDeletedCount: number;
   errorsCount: number;
   durationMs: number;
   errorMessage?: string;
@@ -53,6 +54,7 @@ export class SingleSheetSyncService {
           recordsTransformed: 0,
           salesUpserted: 0,
           orphanSalesCount: 0,
+          reconciledDeletedCount: 0,
           errorsCount: 0,
           durationMs: Date.now() - startTime,
         };
@@ -73,6 +75,15 @@ export class SingleSheetSyncService {
       // 4. Ingesta masiva optimizada por lotes
       const { upsertedCount, errorsCount } = await this.repository.bulkUpsertSales(records, 100);
 
+      // 5. Reconciliación de OTs (limpieza de OTs modificadas o eliminadas en el Excel)
+      const validOts = Array.from(new Set(records.map((r) => r.idOt)));
+      const campanasPresentes = Array.from(new Set(records.map((r) => r.campana)));
+      
+      const reconciledDeletedCount = await this.repository.reconcileObsoleteOts(
+        validOts,
+        campanasPresentes
+      );
+
       const durationMs = Date.now() - startTime;
 
       return {
@@ -83,6 +94,7 @@ export class SingleSheetSyncService {
         recordsTransformed: records.length,
         salesUpserted: upsertedCount,
         orphanSalesCount,
+        reconciledDeletedCount,
         errorsCount,
         durationMs,
       };
@@ -96,6 +108,7 @@ export class SingleSheetSyncService {
         recordsTransformed: 0,
         salesUpserted: 0,
         orphanSalesCount: 0,
+        reconciledDeletedCount: 0,
         errorsCount: 1,
         durationMs,
         errorMessage: err.message || "Error desconocido al procesar la hoja",

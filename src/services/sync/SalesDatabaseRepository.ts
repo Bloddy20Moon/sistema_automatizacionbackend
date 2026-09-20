@@ -13,7 +13,7 @@ export class SalesDatabaseRepository {
   }
 
   /**
-   * Ejecuta UPSERT masivo optimizado por lotes para evitar sobrecargar conexiones
+   * Ejecuta UPSERT masivo optimizado por lotes
    */
   public async bulkUpsertSales(
     records: TransformedSaleRecord[],
@@ -86,5 +86,36 @@ export class SalesDatabaseRepository {
     }
 
     return { upsertedCount, errorsCount };
+  }
+
+  /**
+   * Reconcilia la base de datos eliminando OTs "fantasmas" que fueron modificadas o borradas en el Excel.
+   * Si en el Excel cambiaron la OT 901885392 por 901885391, esta función elimina la 901885392 obsoleta.
+   */
+  public async reconcileObsoleteOts(
+    currentValidOts: string[],
+    campanasPresentes: string[]
+  ): Promise<number> {
+    if (!currentValidOts || currentValidOts.length === 0 || campanasPresentes.length === 0) {
+      return 0;
+    }
+
+    try {
+      const result = await prisma.sale.deleteMany({
+        where: {
+          campana: { in: campanasPresentes },
+          idOt: { notIn: currentValidOts },
+        },
+      });
+
+      if (result.count > 0) {
+        console.log(`[Reconciliación] Se eliminaron ${result.count} registros obsoletos/corregidos que ya no existen en el Excel.`);
+      }
+
+      return result.count;
+    } catch (err) {
+      console.error("Error durante la reconciliación de OTs:", err);
+      return 0;
+    }
   }
 }
